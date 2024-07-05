@@ -1,16 +1,18 @@
 import React, { useState, useEffect } from 'react';
 import axios from 'axios';
 import { toast } from 'react-toastify';
+import CreateTaskModal from './CreateTaskModal';  // Import CreateTaskModal component
 
 function UserTasksPage() {
   const [tasks, setTasks] = useState([]);
+  const [showCreateTaskModal, setShowCreateTaskModal] = useState(false);
 
   useEffect(() => {
     const fetchTasks = async () => {
       try {
-        const token = localStorage.getItem('token'); // Retrieve JWT token from localStorage
+        const token = localStorage.getItem('token');
         const response = await axios.get('http://localhost:5000/api/user/tasks', {
-          headers: { Authorization: `Bearer ${token}` } // Attach JWT token to headers
+          headers: { Authorization: `Bearer ${token}` }
         });
         setTasks(response.data);
       } catch (err) {
@@ -21,9 +23,19 @@ function UserTasksPage() {
     fetchTasks();
   }, []);
 
+  const handleTaskCreated = (newTask) => {
+    setTasks([...tasks, newTask]);
+  };
+
   return (
     <div className="user-tasks-page">
       <h2>Assigned Tasks</h2>
+      <button onClick={() => setShowCreateTaskModal(true)}>Create Task</button>
+      <CreateTaskModal
+        isOpen={showCreateTaskModal}
+        onClose={() => setShowCreateTaskModal(false)}
+        onTaskCreated={handleTaskCreated}
+      />
       <table>
         <thead>
           <tr>

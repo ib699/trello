@@ -23,6 +23,9 @@ function App() {
           <Route path="/tasks" element={<UserTasksPage />} />
           <Route path="/create-board" element={<BoardCreationPage />} />
           <Route path="/dashboard" element={<DashboardPage />} />
+          <Route path="/boards/:boardId" element={<BoardPage />} />
+          <Route path="/" element={<DashboardPage />} />
+          <Route path="/boards/:boardId" element={<BoardPage />} />
         </Routes>
         <ToastContainer />
       </div>

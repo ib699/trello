@@ -1,126 +1,109 @@
+// BoardPage.js
 import React, { useState, useEffect } from 'react';
 import axios from 'axios';
 import { toast } from 'react-toastify';
-import TaskColumn from './TaskColumn';
+import { useParams } from 'react-router-dom';
+import { DndContext } from '@dnd-kit/core';
+import { Draggable } from './Draggable';
+import { Droppable } from './Droppable';
+import './BoardPage.css';
 
-function BoardPage({ boardId }) {
-  const [board, setBoard] = useState(null);
-  const [newMemberUsername, setNewMemberUsername] = useState('');
-  const [foundUsers, setFoundUsers] = useState([]);
-  const [onlineStatus, setOnlineStatus] = useState({});
+function BoardPage() {
+  const { boardId } = useParams();
+  const [tasks, setTasks] = useState({
+    todo: [],
+    inProgress: [],
+    done: []
+  });
 
   useEffect(() => {
-    const fetchBoard = async () => {
+    const fetchTasks = async () => {
       try {
-        const response = await axios.get(`/api/boards/${boardId}`);
-        setBoard(response.data);
+        const token = localStorage.getItem('token');
+        const response = await axios.get(`http://localhost:5000/api/boards/${boardId}/tasks`, {
+          headers: { Authorization: `Bearer ${token}` }
+        });
+        const groupedTasks = {
+          todo: response.data.filter(task => task.status === 'todo'),
+          inProgress: response.data.filter(task => task.status === 'in progress'),
+          done: response.data.filter(task => task.status === 'done')
+        };
+        setTasks(groupedTasks);
       } catch (err) {
-        toast.error('Failed to fetch board.');
+        toast.error('Failed to fetch tasks.');
       }
     };
 
-    fetchBoard();
-
-    const ws = new WebSocket('ws://localhost:8080');
-
-    ws.onmessage = (message) => {
-      const data = JSON.parse(message.data);
-      if (data.type === 'online-status') {
-        setOnlineStatus(data.status);
-      }
-    };
-
-    return () => {
-      ws.close();
-    };
+    fetchTasks();
   }, [boardId]);
 
-  const searchUsers = async () => {
-    try {
-      const response = await axios.get(`/api/users?username=${newMemberUsername}`);
-      setFoundUsers(response.data);
-    } catch (err) {
-      toast.error('Failed to search users.');
-    }
-  };
+  const handleDragEnd = ({ over, active }) => {
+    if (!over) return;
 
-  const addMember = async (user) => {
-    try {
-      await axios.post(`/api/boards/${boardId}/members`, { userId: user.id });
-      setBoard({ ...board, members: [...board.members, user] });
-      toast.success('Member added successfully.');
-    } catch (err) {
-      toast.error('Failed to add member.');
-    }
-  };
+    console.log("Active:", active);
+    console.log("Over:", over);
 
-  const removeMember = async (userId) => {
-    try {
-      await axios.delete(`/api/boards/${boardId}/members/${userId}`);
-      setBoard({ ...board, members: board.members.filter(member => member.id !== userId) });
-      toast.success('Member removed successfully.');
-    } catch (err) {
-      toast.error('Failed to remove member.');
-    }
-  };
+    const sourceColumn = active?.data?.current?.sortable?.containerId;
+    const destinationColumn = over?.id;
 
-  const changeRole = async (userId, role) => {
-    try {
-      await axios.patch(`/api/boards/${boardId}/members/${userId}`, { role });
-      setBoard({
-        ...board,
-        members: board.members.map(member =>
-          member.id === userId ? { ...member, role } : member
-        ),
-      });
-      toast.success('Role updated successfully.');
-    } catch (err) {
-      toast.error('Failed to update role.');
+    if (!sourceColumn || !destinationColumn) {
+        console.error("Source or destination column is undefined");
+        return;
     }
-  };
+
+    if (sourceColumn === destinationColumn) return;
+
+    const sourceItems = Array.from(tasks[sourceColumn]);
+    const [movedTask] = sourceItems.splice(active.data.current.sortable.index, 1);
+
+    const destinationItems = Array.from(tasks[destinationColumn]);
+    destinationItems.splice(over.data.current.sortable.index, 0, movedTask);
+
+    setTasks({
+        ...tasks,
+        [sourceColumn]: sourceItems,
+        [destinationColumn]: destinationItems
+    });
+
+    // Update the task's status in the backend
+    const updateTaskStatus = async () => {
+        try {
+            const token = localStorage.getItem('token');
+            await axios.put(`http://localhost:5000/api/tasks/${movedTask.id}/status`, {
+                status: destinationColumn
+            }, {
+                headers: { Authorization: `Bearer ${token}` }
+            });
+            toast.success('Task status updated successfully.');
+        } catch (err) {
+            toast.error('Failed to update task status.');
+        }
+    };
+
+    updateTaskStatus();
+};
 
   return (
     <div className="board-page">
-      {board && (
-        <>
-          <h2>{board.title}</h2>
-          <p>{board.description}</p>
-          <h3>Members</h3>
-          <ul>
-            {board.members.map(member => (
-              <li key={member.id}>
-                {member.username} - {member.role} - {onlineStatus[member.id] ? 'Online' : 'Offline'}
-                <button onClick={() => removeMember(member.id)}>Remove</button>
-                {member.role !== 'admin' && (
-                  <button onClick={() => changeRole(member.id, 'admin')}>Make Admin</button>
-                )}
-                {member.role === 'admin' && (
-                  <button onClick={() => changeRole(member.id, 'member')}>Demote</button>
-                )}
-              </li>
-            ))}
-          </ul>
-          <input
-            type="text"
-            placeholder="Search Users"
-            value={newMemberUsername}
-            onChange={(e) => setNewMemberUsername(e.target.value)}
-          />
-          <button onClick={searchUsers}>Search</button>
-          <ul>
-            {foundUsers.map(user => (
-              <li key={user.id}>
-                {user.username} <button onClick={() => addMember(user)}>Add</button>
-              </li>
-            ))}
-          </ul>
-          <div className="task-columns">
-            <TaskColumn status="todo" boardId={boardId} />
-            <TaskColumn status="in-progress" boardId={boardId} />
-            <TaskColumn status="done" boardId={boardId} />
-          </div>
-        </>
-      )}
+      <h2>Board {boardId}</h2>
+      <DndContext onDragEnd={handleDragEnd}>
+        <div className="task-columns">
+          {['todo', 'inProgress', 'done'].map(columnId => (
+            <Droppable key={columnId} id={columnId}>
+              <h3>{columnId}</h3>
+              {tasks[columnId].map((task, index) => (
+                <Draggable key={task.id} id={task.id} index={index} data={{sortable: {containerId: columnId, index}}}>
+                  <div className="task-card">
+                    <h4>{task.title}</h4>
+                    <p>{task.assignee}</p>
+                    {task.photo && <img src={task.photo} alt="Task" />}
+                  </div>
+                </Draggable>
+              ))}
+            </Droppable>
+          ))}
+        </div>
+      </DndContext>
     </div>
   );
 }

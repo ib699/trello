@@ -38,6 +38,17 @@ MOCK_TASKS = [
         'status': 'todo',
         'username': 'ebi'
     },
+    
+    {
+        'id': 3,
+        'title': 'Task 3',
+        'description': 'Description for task 3',
+        'board_name': 'Board 1',
+        'due_date': '2024-07-15',
+        'status': 'in progress',
+        'username': 'ebi'
+    },
+    
     {
         'id': 2,
         'title': 'Task 2',
@@ -50,10 +61,11 @@ MOCK_TASKS = [
 ]
 
 # Mock data and users
-MOCK_TASKS = [
-    {'id': 1, 'username': 'ebi', 'title': 'Task 1', 'description': 'Description 1', 'board_name': 'Board 1', 'due_date': '2023-01-01', 'status': 'todo'},
-    {'id': 2, 'username': 'ebra', 'title': 'Task 2', 'description': 'Description 2', 'board_name': 'Board A', 'due_date': '2023-02-01', 'status': 'in progress'},
-]
+# MOCK_TASKS = [
+#     {'id': 1, 'username': 'ebi', 'title': 'Task 1', 'description': 'Description 1', 'board_name': 'Board 1', 'due_date': '2023-01-01', 'status': 'todo'},
+#     {'id': 3, 'username': 'ebi', 'title': 'Task 3', 'description': 'Description 3', 'board_name': 'Board 1', 'due_date': '2023-01-01', 'status': 'in progress'},
+#     {'id': 2, 'username': 'ebra', 'title': 'Task 2', 'description': 'Description 2', 'board_name': 'Board A', 'due_date': '2023-02-01', 'status': 'in progress'},
+# ]
 MOCK_BOARDS = [
     {'id': 1, 'name': 'Board 1', 'description': 'Description of Board 1', 'members': ['ebi'], 'admins': ['ebi']},
     {'id': 2, 'name': 'Board A', 'description': 'Description of Board A', 'members': ['ebra'], 'admins': ['ebra']},
@@ -191,11 +203,7 @@ def update_profile(current_user):
 
 
 
-@app.route('/api/user/tasks', methods=['GET'])
-@token_required
-def get_user_tasks(current_user):
-    user_tasks = [task for task in MOCK_TASKS if task['username'] == current_user]
-    return jsonify(user_tasks)
+
 
 @app.route('/api/users', methods=['GET'])
 @token_required
@@ -250,7 +258,74 @@ def change_admin_status(current_user, board_id, username):
     else:
         return jsonify({'message': 'Not authorized!'}), 403
 
+@app.route('/api/user/tasks', methods=['GET'])
+@token_required
+def get_user_tasks(current_user):
+    user_tasks = [task for task in MOCK_TASKS if task['username'] == current_user]
+    return jsonify(user_tasks)
 
+@app.route('/api/tasks', methods=['POST'])
+@token_required
+def create_task(current_user):
+    data = request.json
+    new_task = {
+        'id': len(MOCK_TASKS) + 1,
+        'username': current_user,
+        'title': data['title'],
+        'description': data.get('description', ''),
+        'board_name': data['board_name'],
+        'due_date': data.get('due_date', ''),
+        'status': 'todo',
+        'estimate': data.get('estimate', 0),
+        'assignee': current_user,
+        'comments': [],
+        'checklist': [],
+        'photo': data.get('photo', None)
+    }
+    MOCK_TASKS.append(new_task)
+    return jsonify(new_task)
+
+@app.route('/api/tasks/<int:task_id>', methods=['PUT'])
+@token_required
+def update_task(current_user, task_id):
+    task = next((t for t in MOCK_TASKS if t['id'] == task_id), None)
+    if not task:
+        return jsonify({'message': 'Task not found!'}), 404
+    data = request.json
+    task.update(data)
+    return jsonify(task)
+
+@app.route('/api/tasks/<int:task_id>/status', methods=['PUT'])
+@token_required
+def update_task_status(current_user, task_id):
+    task = next((t for t in MOCK_TASKS if t['id'] == task_id), None)
+    if not task:
+        return jsonify({'message': 'Task not found!'}), 404
+    data = request.json
+    print(data)
+    return jsonify(task)
+
+@app.route('/api/tasks/<int:task_id>', methods=['DELETE'])
+@token_required
+def delete_task(current_user, task_id):
+    task = next((t for t in MOCK_TASKS if t['id'] == task_id), None)
+    if not task:
+        return jsonify({'message': 'Task not found!'}), 404
+    MOCK_TASKS.remove(task)
+    return jsonify({'message': 'Task deleted!'})
+
+
+@app.route('/api/boards/<int:board_id>/tasks', methods=['GET'])
+@token_required
+def get_board_tasks(current_user, board_id):
+    # Fetch tasks for the given board_id
+    for name in MOCK_BOARDS:
+        if name['id'] is board_id:
+            board_name = name['name']
+            break
+
+    board_tasks = [task for task in MOCK_TASKS if task['board_name'] == board_name]
+    return jsonify(board_tasks)
 
 if __name__ == '__main__':
     app.run(port=5000, debug=True)

@@ -1,0 +1,41 @@
+/* BoardPage.css */
+.board-page {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+}
+
+.task-columns {
+  display: flex;
+  justify-content: space-between;
+  width: 100%;
+}
+
+.task-column {
+  border: 1px solid #ddd;
+  border-radius: 4px;
+  padding: 10px;
+  margin: 10px;
+  width: 30%;
+  min-height: 400px;
+  background-color: #f0f0f0;
+  display: flex;
+  flex-direction: column;
+}
+
+.task-card {
+  border: 1px solid #ccc;
+  border-radius: 4px;
+  padding: 10px;
+  margin: 10px 0;
+  background-color: white;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  cursor: grab;
+}
+
+.task-card img {
+  max-width: 100%;
+  height: auto;
+}
