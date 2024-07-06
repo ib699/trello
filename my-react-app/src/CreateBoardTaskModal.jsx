@@ -2,24 +2,23 @@ import React, { useState } from 'react';
 import axios from 'axios';
 import { toast } from 'react-toastify';
 
-function CreateTaskModal({ isOpen, onClose, onTaskCreated, boards }) {
+function CreateBoardTaskModal({ isOpen, onClose, onTaskCreated, boardName }) {
   const [title, setTitle] = useState('');
   const [description, setDescription] = useState('');
   const [estimate, setEstimate] = useState(0);
   const [dueDate, setDueDate] = useState('');
   const [photo, setPhoto] = useState(null);
-  const [selectedBoardId, setSelectedBoardId] = useState('');  // State for selected board ID
 
   const handleCreate = async () => {
-    if (!title || !selectedBoardId) {
-      toast.error('Title and Board are required.');
+    if (!title) {
+      toast.error('Title is required.');
       return;
     }
 
     const newTask = {
       title,
       description,
-      board_name: selectedBoardId,  // Use selected board ID
+      board_name: boardName,
       estimate,
       due_date: dueDate,
       photo
@@ -70,12 +69,6 @@ function CreateTaskModal({ isOpen, onClose, onTaskCreated, boards }) {
           onChange={(e) => setDueDate(e.target.value)}
         />
         <input type="file" onChange={handlePhotoChange} />
-        <select value={selectedBoardId} onChange={(e) => setSelectedBoardId(e.target.value)}>
-          <option value="">Select Board</option>
-          {boards.map(board => (
-            <option key={board.id} value={board.id}>{board.name}</option>
-          ))}
-        </select>
         <button onClick={handleCreate}>Create</button>
         <button onClick={onClose}>Cancel</button>
       </div>
@@ -83,4 +76,4 @@ function CreateTaskModal({ isOpen, onClose, onTaskCreated, boards }) {
   );
 }
 
-export default CreateTaskModal;
+export default CreateBoardTaskModal;

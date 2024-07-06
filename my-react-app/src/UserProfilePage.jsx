@@ -27,7 +27,8 @@ function UserProfilePage() {
 
   const handleLogout = async () => {
     try {
-      await axios.post('/api/user/logout');
+      const token = localStorage.getItem('token'); // Retrieve JWT token from localStorage
+      const response = await axios.post('http://localhost:5000/api/user/logout');
       toast.success('Logged out successfully.');
       navigate('/login'); // Redirect to login page
     } catch (err) {
@@ -56,7 +57,7 @@ function UserProfilePage() {
   const handleSave = async () => {
     try {
       const token = localStorage.getItem('token'); // Retrieve JWT token from localStorage
-      await axios.put('/api/user/profile', updatedUser, {
+      await axios.put('http://localhost:5000/api/user/profile', updatedUser, {
         headers: { Authorization: `Bearer ${token}` } // Attach JWT token to headers
       });
       setUser({ ...user, ...updatedUser, password: undefined }); // Update user state without exposing the password

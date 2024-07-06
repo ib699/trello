@@ -1,11 +1,8 @@
-// BoardPage.js
 import React, { useState, useEffect } from 'react';
 import axios from 'axios';
 import { toast } from 'react-toastify';
 import { useParams } from 'react-router-dom';
-import { DndContext } from '@dnd-kit/core';
-import { Draggable } from './Draggable';
-import { Droppable } from './Droppable';
+import CreateBoardTaskModal from './CreateBoardTaskModal';
 import './BoardPage.css';
 
 function BoardPage() {
@@ -15,6 +12,7 @@ function BoardPage() {
     inProgress: [],
     done: []
   });
+  const [isModalOpen, setIsModalOpen] = useState(false);
 
   useEffect(() => {
     const fetchTasks = async () => {
@@ -25,7 +23,7 @@ function BoardPage() {
         });
         const groupedTasks = {
           todo: response.data.filter(task => task.status === 'todo'),
-          inProgress: response.data.filter(task => task.status === 'in progress'),
+          inProgress: response.data.filter(task => task.status === 'inProgress'),
           done: response.data.filter(task => task.status === 'done')
         };
         setTasks(groupedTasks);
@@ -37,73 +35,88 @@ function BoardPage() {
     fetchTasks();
   }, [boardId]);
 
-  const handleDragEnd = ({ over, active }) => {
-    if (!over) return;
+  const onDragStart = (event, task, sourceColumn) => {
+    event.dataTransfer.setData('task', JSON.stringify(task));
+    event.dataTransfer.setData('sourceColumn', sourceColumn);
+  };
 
-    console.log("Active:", active);
-    console.log("Over:", over);
+  const onDragOver = (event) => {
+    event.preventDefault();
+  };
 
-    const sourceColumn = active?.data?.current?.sortable?.containerId;
-    const destinationColumn = over?.id;
-
-    if (!sourceColumn || !destinationColumn) {
-        console.error("Source or destination column is undefined");
-        return;
-    }
+  const onDrop = async (event, destinationColumn) => {
+    const task = JSON.parse(event.dataTransfer.getData('task'));
+    const sourceColumn = event.dataTransfer.getData('sourceColumn');
 
     if (sourceColumn === destinationColumn) return;
 
     const sourceItems = Array.from(tasks[sourceColumn]);
-    const [movedTask] = sourceItems.splice(active.data.current.sortable.index, 1);
-
     const destinationItems = Array.from(tasks[destinationColumn]);
-    destinationItems.splice(over.data.current.sortable.index, 0, movedTask);
+
+    const updatedSourceItems = sourceItems.filter(item => item.id !== task.id);
+    destinationItems.push(task);
 
     setTasks({
-        ...tasks,
-        [sourceColumn]: sourceItems,
-        [destinationColumn]: destinationItems
+      ...tasks,
+      [sourceColumn]: updatedSourceItems,
+      [destinationColumn]: destinationItems
     });
 
-    // Update the task's status in the backend
-    const updateTaskStatus = async () => {
-        try {
-            const token = localStorage.getItem('token');
-            await axios.put(`http://localhost:5000/api/tasks/${movedTask.id}/status`, {
-                status: destinationColumn
-            }, {
-                headers: { Authorization: `Bearer ${token}` }
-            });
-            toast.success('Task status updated successfully.');
-        } catch (err) {
-            toast.error('Failed to update task status.');
-        }
-    };
+    try {
+      const token = localStorage.getItem('token');
+      await axios.put(`http://localhost:5000/api/tasks/${task.id}/status`, {
+        status: destinationColumn
+      }, {
+        headers: { Authorization: `Bearer ${token}` }
+      });
+      toast.success('Task status updated successfully.');
+    } catch (err) {
+      toast.error('Failed to update task status.');
+    }
+  };
 
-    updateTaskStatus();
-};
+  const handleTaskCreated = (newTask) => {
+    setTasks((prevTasks) => ({
+      ...prevTasks,
+      todo: [...prevTasks.todo, newTask]
+    }));
+  };
 
   return (
     <div className="board-page">
       <h2>Board {boardId}</h2>
-      <DndContext onDragEnd={handleDragEnd}>
-        <div className="task-columns">
-          {['todo', 'inProgress', 'done'].map(columnId => (
-            <Droppable key={columnId} id={columnId}>
-              <h3>{columnId}</h3>
-              {tasks[columnId].map((task, index) => (
-                <Draggable key={task.id} id={task.id} index={index} data={{sortable: {containerId: columnId, index}}}>
-                  <div className="task-card">
-                    <h4>{task.title}</h4>
-                    <p>{task.assignee}</p>
-                    {task.photo && <img src={task.photo} alt="Task" />}
-                  </div>
-                </Draggable>
-              ))}
-            </Droppable>
-          ))}
-        </div>
-      </DndContext>
+      <button onClick={() => setIsModalOpen(true)}>Create Task</button>
+      <CreateBoardTaskModal 
+        isOpen={isModalOpen} 
+        onClose={() => setIsModalOpen(false)} 
+        onTaskCreated={handleTaskCreated} 
+        boardName={boardId} 
+      />
+      <div className="task-columns">
+        {['todo', 'inProgress', 'done'].map(columnId => (
+          <div 
+            key={columnId} 
+            id={columnId} 
+            className="droppable"
+            onDragOver={onDragOver}
+            onDrop={(event) => onDrop(event, columnId)}
+          >
+            <h3>{columnId}</h3>
+            {tasks[columnId].map((task) => (
+              <div 
+                key={task.id} 
+                className="task-card" 
+                draggable 
+                onDragStart={(event) => onDragStart(event, task, columnId)}
+              >
+                <h4>{task.title}</h4>
+                <p>{task.assignee}</p>
+                {task.photo && <img src={task.photo} alt="Task" />}
+              </div>
+            ))}
+          </div>
+        ))}
+      </div>
     </div>
   );
 }

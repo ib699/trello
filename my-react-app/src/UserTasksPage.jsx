@@ -6,6 +6,7 @@ import CreateTaskModal from './CreateTaskModal';  // Import CreateTaskModal comp
 function UserTasksPage() {
   const [tasks, setTasks] = useState([]);
   const [showCreateTaskModal, setShowCreateTaskModal] = useState(false);
+  const [boards, setBoards] = useState([]);  // State for boards
 
   useEffect(() => {
     const fetchTasks = async () => {
@@ -23,6 +24,18 @@ function UserTasksPage() {
     fetchTasks();
   }, []);
 
+  const fetchBoards = async () => {
+    try {
+      const token = localStorage.getItem('token');
+      const response = await axios.get('http://localhost:5000/api/boards', {
+        headers: { Authorization: `Bearer ${token}` }
+      });
+      setBoards(response.data);
+    } catch (err) {
+      toast.error('Failed to fetch boards.');
+    }
+  };
+
   const handleTaskCreated = (newTask) => {
     setTasks([...tasks, newTask]);
   };
@@ -30,11 +43,15 @@ function UserTasksPage() {
   return (
     <div className="user-tasks-page">
       <h2>Assigned Tasks</h2>
-      <button onClick={() => setShowCreateTaskModal(true)}>Create Task</button>
+      <button onClick={() => {
+        fetchBoards();
+        setShowCreateTaskModal(true);
+      }}>Create Task</button>
       <CreateTaskModal
         isOpen={showCreateTaskModal}
         onClose={() => setShowCreateTaskModal(false)}
         onTaskCreated={handleTaskCreated}
+        boards={boards}  // Pass boards to modal
       />
       <table>
         <thead>

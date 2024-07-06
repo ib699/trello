@@ -14,17 +14,30 @@ function DashboardPage() {
     const fetchBoards = async () => {
       try {
         const token = localStorage.getItem('token');
+        if (!token) {
+          toast.error('Token not found, please log in again.');
+          navigate('/login');  // Redirect to login page if no token
+          return;
+        }
         const response = await axios.get('http://localhost:5000/api/boards', {
           headers: { Authorization: `Bearer ${token}` }
         });
         setBoards(response.data);
       } catch (err) {
-        toast.error('Failed to fetch boards.');
+        if (err.response) {
+          if (err.response.status === 404 && err.response.data.message === 'No boards found') {
+            toast.error('No boards found');
+          } else {
+            toast.error('Failed to fetch boards.');
+          }
+        } else {
+          toast.error('Failed to fetch boards.');
+        }
       }
     };
 
     fetchBoards();
-  }, []);
+  }, [navigate]);
 
   const handleBoardCreated = (newBoard) => {
     setBoards([...boards, newBoard]);
@@ -34,9 +47,14 @@ function DashboardPage() {
     navigate(`/boards/${boardId}`);
   };
 
+  const handleViewProfile = () => {
+    window.location.href = 'http://localhost:5173/profile';
+  };
+
   return (
     <div className="dashboard-container">
       <h2>Dashboard</h2>
+      <button onClick={handleViewProfile}>Profile</button>
       <button onClick={() => setShowCreateBoardModal(true)}>Create Board</button>
       <CreateBoardModal
         isOpen={showCreateBoardModal}
