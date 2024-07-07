@@ -2,6 +2,7 @@ import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { toast } from 'react-toastify';
 import axios from 'axios';
+import './LoginPage.css'; // Import the CSS file
 
 function LoginPage() {
   const [username, setUsername] = useState('');

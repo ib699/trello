@@ -1,7 +1,8 @@
 import React, { useState, useEffect } from 'react';
 import axios from 'axios';
 import { toast } from 'react-toastify';
-import { useNavigate } from 'react-router-dom'; // Import useNavigate from react-router-dom
+import { useNavigate } from 'react-router-dom';
+import './UserProfilePage.css'; // Import the CSS file
 
 function UserProfilePage() {
   const [user, setUser] = useState(null);
@@ -39,11 +40,11 @@ function UserProfilePage() {
   const handleDelete = async () => {
     try {
       const token = localStorage.getItem('token'); // Retrieve JWT token from localStorage
-      await axios.delete('/api/user/profile', {
+      await axios.delete('http://localhost:5000/api/user/profile', {
         headers: { Authorization: `Bearer ${token}` } // Attach JWT token to headers
       });
       toast.success('Account deleted successfully.');
-      navigate('/signup'); // Redirect to signup page
+      navigate('/register'); // Redirect to signup page
     } catch (err) {
       toast.error('Failed to delete account.');
     }

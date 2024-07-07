@@ -2,7 +2,7 @@ import React, { useState } from 'react';
 import axios from 'axios';
 import { toast } from 'react-toastify';
 
-function CreateBoardTaskModal({ isOpen, onClose, onTaskCreated, boardName }) {
+function CreateBoardTaskModal({ isOpen, onClose, onTaskCreated, boardName, boardId, status }) { // Accept status as a prop
   const [title, setTitle] = useState('');
   const [description, setDescription] = useState('');
   const [estimate, setEstimate] = useState(0);
@@ -18,15 +18,16 @@ function CreateBoardTaskModal({ isOpen, onClose, onTaskCreated, boardName }) {
     const newTask = {
       title,
       description,
-      board_name: boardName,
+      board_name: parseInt(boardId, 10), // Use boardId here
       estimate,
       due_date: dueDate,
-      photo
+      photo,
+      status // Include status in the new task object
     };
 
     try {
       const token = localStorage.getItem('token');
-      const response = await axios.post('http://localhost:5000/api/tasks', newTask, {
+      const response = await axios.post(`http://localhost:5000/api/tasks`, newTask, {
         headers: { Authorization: `Bearer ${token}` }
       });
       onTaskCreated(response.data);

@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import axios from 'axios';
 import { toast } from 'react-toastify';
+import './CreateBoardModal.css'; // Import CSS file for styling
 
 function CreateBoardModal({ isOpen, onClose, onBoardCreated }) {
   const [boardName, setBoardName] = useState('');

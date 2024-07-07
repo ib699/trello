@@ -1,84 +1,171 @@
-/* BoardPage.css */
-
 .board-page {
   display: flex;
   flex-direction: column;
-  align-items: center;
+  max-width: 1200px;
+  margin: 0 auto;
   padding: 20px;
   font-family: Arial, sans-serif;
-  background-color: #f4f4f4;
-  min-height: 100vh;
 }
 
-.board-page h2 {
-  margin-bottom: 20px;
-  color: #333;
+.sidebar {
+  width: 300px;
+  background-color: #f0f0f0;
+  padding: 10px;
+  border-radius: 5px;
+  box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+  margin-right: 20px;
 }
 
-.board-page button {
-  padding: 10px 20px;
-  margin-bottom: 20px;
-  background-color: #007bff;
-  color: white;
-  border: none;
-  border-radius: 4px;
-  cursor: pointer;
+.sidebar h3 {
+  margin-top: 0;
+  font-size: 18px;
 }
 
-.board-page button:hover {
-  background-color: #0056b3;
+.sidebar ul {
+  list-style-type: none;
+  padding: 0;
+}
+
+.sidebar ul li {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 5px;
 }
 
 .task-columns {
   display: flex;
-  justify-content: space-around;
-  width: 100%;
-  max-width: 1200px;
+  justify-content: space-between;
+  gap: 20px;
 }
 
 .droppable {
   flex: 1;
-  background-color: #fff;
-  margin: 0 10px;
+  background-color: #f9f9f9;
   padding: 10px;
-  border-radius: 8px;
-  box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
+  border-radius: 5px;
+  box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
 }
 
 .droppable h3 {
-  text-align: center;
-  color: #666;
-  border-bottom: 1px solid #eee;
-  padding-bottom: 10px;
-  margin-bottom: 20px;
+  font-size: 18px;
+  margin-bottom: 10px;
 }
 
 .task-card {
-  background-color: #f9f9f9;
-  padding: 15px;
+  background-color: #fff;
+  padding: 10px;
   margin-bottom: 10px;
-  border-radius: 8px;
-  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
-  cursor: grab;
-  transition: background-color 0.3s;
-}
-
-.task-card:hover {
-  background-color: #e9e9e9;
+  border: 1px solid #ddd;
+  border-radius: 5px;
+  cursor: pointer;
+  position: relative;
 }
 
 .task-card h4 {
-  margin: 0 0 10px;
-  color: #333;
+  margin-top: 0;
+  font-size: 16px;
 }
 
 .task-card p {
-  margin: 0;
-  color: #555;
+  margin: 5px 0;
 }
 
 .task-card img {
   max-width: 100%;
-  border-radius: 4px;
-  margin-top: 10px;
+  border-radius: 5px;
+}
+
+.task-card button {
+  margin-top: 5px;
+  padding: 5px 10px;
+  cursor: pointer;
+  font-size: 14px;
+  background-color: #007bff;
+  color: #fff;
+  border: none;
+  border-radius: 3px;
+}
+
+.task-card button:hover {
+  background-color: #0056b3;
+}
+
+.assignees {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 5px;
+  margin-top: 5px;
+}
+
+.assignee {
+  display: flex;
+  align-items: center;
+  background-color: #f0f0f0;
+  padding: 3px 5px;
+  border-radius: 3px;
+}
+
+.assignee img {
+  width: 20px;
+  height: 20px;
+  border-radius: 50%;
+  margin-right: 5px;
+}
+
+.assignee span {
+  font-size: 14px;
+}
+
+.create-task-buttons {
+  display: flex;
+  justify-content: space-around;
+  margin-top: 20px;
+}
+
+.create-task-buttons button {
+  padding: 10px 20px;
+  font-size: 16px;
+  cursor: pointer;
+  background-color: #28a745;
+  color: #fff;
+  border: none;
+  border-radius: 5px;
+}
+
+.create-task-buttons button:hover {
+  background-color: #218838;
+}
+
+.loading {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  height: 200px;
+  font-size: 20px;
+}
+
+@media (max-width: 768px) {
+  .board-page {
+    padding: 10px;
+  }
+
+  .task-columns {
+    flex-direction: column;
+  }
+
+  .sidebar {
+    width: 100%;
+    margin-right: 0;
+    margin-bottom: 20px;
+  }
+
+  .create-task-buttons {
+    flex-direction: column;
+    gap: 10px;
+  }
+
+  .create-task-buttons button {
+    width: 100%;
+  }
 }

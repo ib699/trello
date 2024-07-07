@@ -1,0 +1,74 @@
+/* DashboardPage.css */
+
+.dashboard-container {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    padding: 20px;
+    font-family: Arial, sans-serif;
+    background-color: #f4f4f4;
+    min-height: 100vh;
+  }
+  
+  .dashboard-container h2 {
+    margin-bottom: 20px;
+    color: #333;
+  }
+  
+  .dashboard-container button {
+    padding: 10px 20px;
+    margin: 10px;
+    background-color: #007bff;
+    color: white;
+    border: none;
+    border-radius: 4px;
+    cursor: pointer;
+  }
+  
+  .dashboard-container button:hover {
+    background-color: #0056b3;
+  }
+  
+  .boards-list {
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: center;
+    width: 100%;
+    max-width: 1200px;
+  }
+  
+  .board-item {
+    background-color: #fff;
+    margin: 10px;
+    padding: 20px;
+    border-radius: 8px;
+    box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
+    width: 250px;
+    text-align: center;
+  }
+  
+  .board-item button {
+    margin-top: 10px;
+    background-color: #28a745;
+  }
+  
+  .board-item button:hover {
+    background-color: #218838;
+  }
+  
+  .board-item button + button {
+    background-color: #ffc107;
+  }
+  
+  .board-item button + button:hover {
+    background-color: #e0a800;
+  }
+  
+  .board-item button + button + button {
+    background-color: #dc3545;
+  }
+  
+  .board-item button + button + button:hover {
+    background-color: #c82333;
+  }
+  
